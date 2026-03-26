@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Talk To Doc — Flutter Integration Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white: #ffffff;
+    --surface: #FAFAFA;
+    --border: #E5E7EB;
+    --border-soft: #F3F4F6;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --text-soft: #9CA3AF;
+
+    --orange: #F97316;
+    --orange-light: #FFF7ED;
+    --orange-border: #FED7AA;
+
+    --emerald: #10B981;
+    --emerald-light: #ECFDF5;
+    --emerald-border: #A7F3D0;
+
+    --violet: #7C3AED;
+    --violet-light: #F5F3FF;
+    --violet-border: #DDD6FE;
+
+    --red: #EF4444;
+    --red-light: #FEF2F2;
+    --red-border: #FECACA;
+
+    --amber: #F59E0B;
+    --amber-light: #FFFBEB;
+    --amber-border: #FDE68A;
+
+    --blue: #3B82F6;
+    --blue-light: #EFF6FF;
+    --blue-border: #BFDBFE;
+
+    --code-bg: #011627;
+    --sidebar-w: 260px;
+    --content-max: 860px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background: var(--white);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 40px;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 8px;
+  }
+  .sidebar-logo .app-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--text);
+    display: block;
+    line-height: 1.2;
+  }
+  .sidebar-logo .doc-type {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 3px;
+    display: block;
+  }
+
+  .toc-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    padding: 16px 20px 6px;
+  }
+
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 20px;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .toc-link:hover { color: var(--text); background: var(--surface); }
+  .toc-link.active { color: var(--orange); border-left-color: var(--orange); background: var(--orange-light); font-weight: 500; }
+  .toc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-soft);
+    min-width: 16px;
+  }
+
+  /* ── Main Content ───────────────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 0 48px 120px;
+    max-width: calc(var(--sidebar-w) + var(--content-max));
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────────────── */
+  .hero {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--orange);
+    background: var(--orange-light);
+    border: 1px solid var(--orange-border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 16px;
+    max-width: 680px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--orange);
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 580px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--emerald);
+    flex-shrink: 0;
+  }
+  .meta-pill .dot.orange { background: var(--orange); }
+  .meta-pill .dot.violet { background: var(--violet); }
+
+  /* ── Architecture Banner ────────────────────────────────────────────── */
+  .arch-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: center;
+  }
+  .arch-node {
+    text-align: center;
+    padding: 16px 20px;
+    border-radius: 10px;
+    min-width: 130px;
+  }
+  .arch-node.flutter { background: #EFF6FF; border: 1.5px solid #BFDBFE; }
+  .arch-node.backend { background: var(--orange-light); border: 1.5px solid var(--orange-border); }
+  .arch-node.openai  { background: var(--emerald-light); border: 1.5px solid var(--emerald-border); }
+  .arch-node .node-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .arch-node .node-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .arch-node.flutter .node-title { color: #1D4ED8; }
+  .arch-node.backend .node-title { color: var(--orange); }
+  .arch-node.openai  .node-title { color: var(--emerald); }
+  .arch-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 12px;
+    gap: 4px;
+  }
+  .arch-arrow .arrow-line {
+    width: 60px;
+    height: 1.5px;
+    background: var(--border);
+    position: relative;
+  }
+  .arch-arrow .arrow-line::after {
+    content: '›';
+    position: absolute;
+    right: -6px;
+    top: -9px;
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+  .arch-arrow .arrow-label { font-size: 10px; color: var(--text-soft); white-space: nowrap; }
+
+  /* ── Scope Note ─────────────────────────────────────────────────────── */
+  .scope-note {
+    background: var(--amber-light);
+    border: 1px solid var(--amber-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    font-size: 13.5px;
+    color: #92400E;
+    line-height: 1.6;
+  }
+  .scope-note strong { color: #78350F; }
+
+  /* ── Section ─────────────────────────────────────────────────────────── */
+  .section {
+    padding: 48px 0 0;
+    border-top: 1px solid var(--border-soft);
+    margin-top: 40px;
+  }
+  .section:first-of-type { border-top: none; margin-top: 0; }
+
+  .step-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .step-num-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--text);
+    color: white;
+    padding: 3px 9px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .step-tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .section-desc {
+    font-size: 14.5px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    max-width: 680px;
+  }
+
+  h3.subsection {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h3.subsection::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 14px;
+    background: var(--orange);
+    border-radius: 2px;
+  }
+
+  /* ── Code Block ─────────────────────────────────────────────────────── */
+  .code-wrap {
+    background: var(--code-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0 20px;
+    border: 1px solid #0D2137;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #0D2137;
+    background: #021627;
+  }
+  .code-lang {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5F8FA8;
+  }
+  .code-label {
+    font-size: 11px;
+    color: #4B7A8C;
+  }
+  .code-wrap pre {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+  .code-wrap code {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 12.5px !important;
+    line-height: 1.65 !important;
+    padding: 16px !important;
+    display: block;
+  }
+
+  /* JSON blocks get a slightly different tint */
+  .json-wrap .code-header { background: #02161F; }
+  .json-wrap { border-color: #0A2030; }
+
+  /* ── Event Tables ───────────────────────────────────────────────────── */
+  .event-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 12px 0 24px;
+  }
+
+  .event-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .event-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .event-card-header:hover { background: #F5F5F5; }
+  .event-card-header .event-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+  .event-card-body {
+    padding: 14px 16px;
+  }
+  .event-card-body .event-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .event-card-body .event-when {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--orange);
+    background: var(--orange-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+
+  /* ── Direction Badges ───────────────────────────────────────────────── */
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .badge-server { background: var(--orange-light); color: #C2410C; border: 1px solid var(--orange-border); }
+  .badge-client { background: var(--emerald-light); color: #065F46; border: 1px solid var(--emerald-border); }
+  .badge-oai    { background: var(--violet-light);  color: #5B21B6; border: 1px solid var(--violet-border); }
+  .badge-custom { background: var(--blue-light);    color: #1D4ED8; border: 1px solid var(--blue-border); }
+  .badge-both   { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ── Info Boxes ─────────────────────────────────────────────────────── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13.5px;
+    line-height: 1.65;
+    display: flex;
+    gap: 12px;
+  }
+  .callout-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .callout.warning { background: var(--red-light); border: 1px solid var(--red-border); color: #991B1B; }
+  .callout.warning strong { color: #7F1D1D; }
+  .callout.tip { background: var(--emerald-light); border: 1px solid var(--emerald-border); color: #065F46; }
+  .callout.tip strong { color: #064E3B; }
+  .callout.note { background: var(--amber-light); border: 1px solid var(--amber-border); color: #92400E; }
+  .callout.note strong { color: #78350F; }
+  .callout.info { background: var(--blue-light); border: 1px solid var(--blue-border); color: #1E40AF; }
+  .callout.info strong { color: #1E3A8A; }
+
+  /* ── Spec Table ─────────────────────────────────────────────────────── */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .spec-table th {
+    background: var(--text);
+    color: white;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .spec-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .spec-table tr:last-child td { border-bottom: none; }
+  .spec-table tr:nth-child(even) td { background: var(--surface); }
+  .spec-table td code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    background: #F3F4F6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--orange);
+  }
+  .spec-table td .em { color: var(--text-muted); font-size: 12px; }
+
+  /* ── Responsibility Grid ─────────────────────────────────────────────── */
+  .resp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .resp-cell {
+    padding: 10px 14px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .resp-cell:nth-child(3n) { border-right: none; }
+  .resp-cell.header { background: var(--text); color: white; font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .resp-cell.header:first-child { background: #1F2937; }
+  .resp-cell.server-cell { color: #C2410C; }
+  .resp-cell.app-cell { color: #065F46; }
+  .resp-cell.resp-topic { color: var(--text-muted); font-size: 12px; }
+
+  /* ── Phase State Machine ─────────────────────────────────────────────── */
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0 20px;
+  }
+  .phase-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .phase-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--text);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    min-width: 120px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .phase-info .phase-desc { color: var(--text-muted); }
+  .phase-info .phase-action { color: var(--orange); font-size: 12px; margin-top: 2px; }
+
+  /* ── Flow Steps ─────────────────────────────────────────────────────── */
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 12px 0 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 13px;
+  }
+  .flow-step:last-child { border-bottom: none; }
+  .flow-step:nth-child(even) { background: var(--surface); }
+  .flow-n { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-soft); min-width: 18px; margin-top: 1px; }
+  .flow-who { font-weight: 600; font-size: 12px; color: var(--orange); min-width: 90px; flex-shrink: 0; }
+  .flow-action { color: var(--text); line-height: 1.5; }
+  .flow-action code { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: #F3F4F6; padding: 1px 5px; border-radius: 3px; }
+
+  /* ── Divider ─────────────────────────────────────────────────────────── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* ── Footer ─────────────────────────────────────────────────────────── */
+  .footer {
+    margin-top: 80px;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-soft);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── Inline code ─────────────────────────────────────────────────────── */
+  p code, li code, td code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: #F3F4F6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #C2410C;
+  }
+
+  ul.doc-list {
+    padding-left: 20px;
+    margin: 8px 0 16px;
+  }
+  ul.doc-list li {
+    margin-bottom: 5px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  ul.doc-list li strong { color: var(--text); }
+
+  /* ── Scrollbar ───────────────────────────────────────────────────────── */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── Two-column spec row ─────────────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .spec-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .spec-box-header {
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .spec-box-header.input-header { background: var(--emerald-light); color: #065F46; border-bottom: 1px solid var(--emerald-border); }
+  .spec-box-header.output-header { background: var(--violet-light); color: #5B21B6; border-bottom: 1px solid var(--violet-border); }
+  .spec-box-body { padding: 0; }
+  .spec-box-body .sb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .spec-box-body .sb-row:last-child { border-bottom: none; }
+  .sb-key { color: var(--text-muted); }
+  .sb-val { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="app-name">Talk To Doc</span>
+    <span class="doc-type">Flutter WS Integration</span>
+  </div>
+
+  <div class="toc-section-label">Overview</div>
+  <a href="#architecture" class="toc-link"><span class="toc-num">—</span>Architecture</a>
+  <a href="#responsibilities" class="toc-link"><span class="toc-num">—</span>Server vs App Scope</a>
+
+  <div class="toc-section-label">Steps</div>
+  <a href="#step1" class="toc-link"><span class="toc-num">01</span>Connection & Auth</a>
+  <a href="#step2" class="toc-link"><span class="toc-num">02</span>Session Ready & States</a>
+  <a href="#step3" class="toc-link"><span class="toc-num">03</span>Mic Audio Streaming</a>
+  <a href="#step4" class="toc-link"><span class="toc-num">04</span>Audio Playback</a>
+  <a href="#step5" class="toc-link"><span class="toc-num">05</span>Text & Image Input</a>
+  <a href="#step6" class="toc-link"><span class="toc-num">06</span>Tool Call Events</a>
+  <a href="#step7" class="toc-link"><span class="toc-num">07</span>Interruption Handling</a>
+  <a href="#step8" class="toc-link"><span class="toc-num">08</span>Session End & Cleanup</a>
+
+  <div class="toc-section-label">Reference</div>
+  <a href="#event-ref" class="toc-link"><span class="toc-num">—</span>Full Event Reference</a>
+  <a href="#audio-specs" class="toc-link"><span class="toc-num">—</span>Audio Specs</a>
+  <a href="#errors" class="toc-link"><span class="toc-num">—</span>Errors & Reconnection</a>
+  <a href="#packages" class="toc-link"><span class="toc-num">—</span>Flutter Packages</a>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Flutter Integration Guide</div>
+    <h1>Talk To Doc<br/><em>WebSocket Realtime API</em></h1>
+    <p class="hero-desc">
+      Everything the Flutter developer needs to integrate the
+      real-time voice session. Covers connection, audio streaming,
+      playback, text/image input, interruption handling, and
+      every event shape the app will send or receive.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-pill"><span class="dot"></span>Backend: NestJS Proxy</div>
+      <div class="meta-pill"><span class="dot orange"></span>Model: gpt-realtime</div>
+      <div class="meta-pill"><span class="dot violet"></span>March 2026 · v1.0</div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div id="architecture" class="section" style="padding-top:36px">
+    <div class="step-eyebrow">
+      <span class="step-tag">Overview</span>
+    </div>
+    <h2>Architecture</h2>
+    <p class="section-desc">
+      The Flutter app talks to the backend proxy only — never directly to OpenAI.
+      The proxy handles auth, session config, VAD, tool execution, and proxies all audio and events.
+    </p>
+
+    <div class="arch-banner">
+      <div class="arch-node flutter">
+        <div class="node-title">Flutter App</div>
+        <div class="node-desc">WSS client<br/>Mic capture<br/>Audio playback<br/>Text / image send</div>
+      </div>
+      <div class="arch-arrow">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">WSS events</div>
+      </div>
+      <div class="arch-node backend">
+        <div class="node-title">Backend Proxy</div>
+        <div class="node-desc">Auth + rate limits<br/>Session config<br/>VAD + interrupts<br/>Tool execution</div>
+      </div>
+      <div class="arch-arrow">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">WSS + API</div>
+      </div>
+      <div class="arch-node openai">
+        <div class="node-title">OpenAI Realtime</div>
+        <div class="node-desc">gpt-realtime model<br/>Whisper-1 STT<br/>PCM16 audio I/O<br/>Function calls</div>
+      </div>
+    </div>
+
+    <div class="callout note">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body">
+        <strong>Key Insight</strong>
+        The backend configures the full OpenAI session (VAD thresholds, tools, voice, instructions).
+        The Flutter app only needs to stream mic audio, play back received audio, and send
+        text/image items. All orchestration is handled server-side.
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPONSIBILITY TABLE -->
+  <div id="responsibilities" class="section">
+    <div class="step-eyebrow"><span class="step-tag">Scope</span></div>
+    <h2>Server vs. App Responsibility</h2>
+    <p class="section-desc">Use this as your integration checklist. If something is server-handled, don't implement it in Flutter.</p>
+
+    <div class="resp-grid">
+      <div class="resp-cell header" style="background:#111827">Responsibility</div>
+      <div class="resp-cell header" style="background:#C2410C">✓ Server Handles</div>
+      <div class="resp-cell header" style="background:#065F46">📱 App Must Handle</div>
+
+      <div class="resp-cell resp-topic">Authentication</div>
+      <div class="resp-cell server-cell">JWT/cookie verification on upgrade</div>
+      <div class="resp-cell app-cell">Obtain JWT, pass as <code>?token=</code></div>
+
+      <div class="resp-cell resp-topic">Session config</div>
+      <div class="resp-cell server-cell">Sends <code>session.update</code> to OpenAI</div>
+      <div class="resp-cell app-cell">Nothing</div>
+
+      <div class="resp-cell resp-topic">VAD / turn detection</div>
+      <div class="resp-cell server-cell">server_vad, all thresholds</div>
+      <div class="resp-cell app-cell">Nothing — just stream audio continuously</div>
+
+      <div class="resp-cell resp-topic"><code>response.create</code></div>
+      <div class="resp-cell server-cell">Auto-sent after speech stop</div>
+      <div class="resp-cell app-cell">Never send this manually</div>
+
+      <div class="resp-cell resp-topic">Tool execution</div>
+      <div class="resp-cell server-cell">Full execution + result delivery</div>
+      <div class="resp-cell app-cell">Show <code>tool.running</code>/<code>tool.done</code> UI</div>
+
+      <div class="resp-cell resp-topic">Interruption logic</div>
+      <div class="resp-cell server-cell">Cancel response + abort tools</div>
+      <div class="resp-cell app-cell">Stop audio on <code>session.interrupted</code></div>
+
+      <div class="resp-cell resp-topic">Audio encoding (input)</div>
+      <div class="resp-cell server-cell">Forwards raw PCM16 b64 to OpenAI</div>
+      <div class="resp-cell app-cell">Encode mic bytes as base64 PCM16</div>
+
+      <div class="resp-cell resp-topic">Audio decoding (output)</div>
+      <div class="resp-cell server-cell">Forwards b64 audio delta chunks</div>
+      <div class="resp-cell app-cell">Decode base64 → PCM16 → play</div>
+
+      <div class="resp-cell resp-topic">Rate limiting</div>
+      <div class="resp-cell server-cell">Closes socket with code 4029</div>
+      <div class="resp-cell app-cell">Handle 4029 close code gracefully</div>
+
+      <div class="resp-cell resp-topic">Image validation</div>
+      <div class="resp-cell server-cell">MIME type, size, normalisation</div>
+      <div class="resp-cell app-cell">Show <code>image_validation_error</code></div>
+
+      <div class="resp-cell resp-topic">Reconnection</div>
+      <div class="resp-cell server-cell">Nothing (stateless per connection)</div>
+      <div class="resp-cell app-cell">Exponential backoff reconnect logic</div>
+    </div>
+  </div>
+
+  <hr class="divider" style="margin-top:48px"/>
+
+  <!-- ══════════════ STEP 1 ══════════════ -->
+  <div id="step1" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">01</span>
+      <span class="step-tag">First Step</span>
+    </div>
+    <h2>Connection & Authentication</h2>
+    <p class="section-desc">
+      Connect via WebSocket to the backend proxy endpoint.
+      Authentication happens at the HTTP upgrade stage using a JWT passed as a query parameter (recommended for mobile) or via cookie.
+    </p>
+
+    <h3 class="subsection">Endpoint</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">text</span><span class="code-label">WebSocket URL</span></div>
+      <pre><code class="language-plaintext">wss://your-backend.com/api/doc-brain/realtime-ws
+
+// Recommended: JWT as query param
+wss://your-backend.com/api/doc-brain/realtime-ws?token=&lt;JWT&gt;</code></pre>
+    </div>
+
+    <h3 class="subsection">Flutter Connection</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Connecting with web_socket_channel</span></div>
+      <pre><code class="language-dart">import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class RealtimeSessionService {
+  WebSocketChannel? _channel;
+
+  void connect(String jwt) {
+    final uri = Uri.parse(
+      'wss://your-backend.com/api/doc-brain/realtime-ws?token=$jwt',
+    );
+
+    _channel = WebSocketChannel.connect(uri);
+
+    _channel!.stream.listen(
+      (message) => _handleEvent(jsonDecode(message as String)),
+      onError: (error) => _handleError(error),
+      onDone: () => _handleDisconnected(),
+    );
+  }
+
+  void _handleEvent(Map&lt;String, dynamic&gt; event) {
+    final type = event['type'] as String;
+    switch (type) {
+      case 'session.ready':       _onSessionReady(event);     break;
+      case 'session.interrupted': _onInterrupted();           break;
+      case 'session.end_requested': _onSessionEnd(event);    break;
+      case 'tool.running':        _onToolRunning(event);      break;
+      case 'tool.done':           _onToolDone(event);         break;
+      case 'tool.aborted':        _onToolAborted(event);      break;
+      case 'response.audio.delta': _onAudioDelta(event);     break;
+      case 'response.audio.done': _onAudioDone();             break;
+      case 'response.audio_transcript.done': _onTranscript(event); break;
+      case 'response.done':       _onResponseDone(event);    break;
+      case 'error':               _onError(event);            break;
+    }
+  }
+}</code></pre>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Rate Limits (enforced server-side)</strong>
+        Max <strong>2 concurrent sessions</strong> per user and <strong>10 connections per minute</strong>.
+        Exceeding either closes the socket with code <strong>4029</strong>.
+        Show an error and prevent any reconnect loop.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 2 ══════════════ -->
+  <div id="step2" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">02</span>
+      <span class="step-tag">Session Lifecycle</span>
+    </div>
+    <h2>Session Ready & State Machine</h2>
+    <p class="section-desc">
+      After the WebSocket upgrades, the backend configures OpenAI and emits
+      <code>session.ready</code>. Only start streaming microphone audio after this event.
+      Mirror the session phase in your UI state.
+    </p>
+
+    <h3 class="subsection">Session Phases</h3>
+    <div class="phase-list">
+      <div class="phase-item">
+        <div class="phase-name">idle</div>
+        <div class="phase-info">
+          <div class="phase-desc">No active conversation turn.</div>
+          <div class="phase-action">UI: Show mic button / ready indicator</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-name">user_speaking</div>
+        <div class="phase-info">
+          <div class="phase-desc">VAD detected voice — user is speaking.</div>
+          <div class="phase-action">UI: Show waveform animation / "Listening…"</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-name">ai_responding</div>
+        <div class="phase-info">
+          <div class="phase-desc">AI is generating a reply and streaming audio.</div>
+          <div class="phase-action">UI: Show AI speaking animation, stream audio playback</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-name">tool_executing</div>
+        <div class="phase-info">
+          <div class="phase-desc">Backend is running a tool call (doc lookup, search, etc).</div>
+          <div class="phase-action">UI: Show spinner / "Looking up…" status from <code>tool.running</code></div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-name">interrupted</div>
+        <div class="phase-info">
+          <div class="phase-desc">User spoke while AI was responding — AI was cut off.</div>
+          <div class="phase-action">UI: Stop playback immediately, return to listening</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Phase is informational</strong>
+        The backend tracks the authoritative phase. The app doesn't receive phase values directly —
+        derive it from the events you receive (<code>response.created</code> → ai_responding,
+        <code>tool.running</code> → tool_executing, etc).
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 3 ══════════════ -->
+  <div id="step3" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">03</span>
+      <span class="step-tag">Microphone</span>
+    </div>
+    <h2>Mic Audio Streaming</h2>
+    <p class="section-desc">
+      Continuously stream mic audio as base64-encoded PCM16 chunks after receiving
+      <code>session.ready</code>. The server VAD automatically detects speech
+      start/end — the app does not manage turns.
+    </p>
+
+    <h3 class="subsection">Audio Format</h3>
+    <div class="two-col">
+      <div class="spec-box">
+        <div class="spec-box-header input-header">🎤 Input (Mic → Server)</div>
+        <div class="spec-box-body">
+          <div class="sb-row"><span class="sb-key">Format</span><span class="sb-val">PCM16 LE</span></div>
+          <div class="sb-row"><span class="sb-key">Sample rate</span><span class="sb-val">16 000 Hz</span></div>
+          <div class="sb-row"><span class="sb-key">Channels</span><span class="sb-val">1 (mono)</span></div>
+          <div class="sb-row"><span class="sb-key">Bit depth</span><span class="sb-val">16-bit signed int</span></div>
+          <div class="sb-row"><span class="sb-key">Chunk size</span><span class="sb-val">20–50 ms</span></div>
+          <div class="sb-row"><span class="sb-key">Raw bytes/chunk</span><span class="sb-val">640–1600 bytes</span></div>
+          <div class="sb-row"><span class="sb-key">Encoding</span><span class="sb-val">base64 string</span></div>
+        </div>
+      </div>
+      <div class="spec-box">
+        <div class="spec-box-header output-header">🔊 Output (Server → Speaker)</div>
+        <div class="spec-box-body">
+          <div class="sb-row"><span class="sb-key">Format</span><span class="sb-val">PCM16 LE</span></div>
+          <div class="sb-row"><span class="sb-key">Sample rate</span><span class="sb-val">24 000 Hz</span></div>
+          <div class="sb-row"><span class="sb-key">Channels</span><span class="sb-val">1 (mono)</span></div>
+          <div class="sb-row"><span class="sb-key">Bit depth</span><span class="sb-val">16-bit signed int</span></div>
+          <div class="sb-row"><span class="sb-key">Per delta event</span><span class="sb-val">variable size</span></div>
+          <div class="sb-row"><span class="sb-key">Jitter buffer</span><span class="sb-val">2–4 chunks recommended</span></div>
+          <div class="sb-row"><span class="sb-key">Encoding</span><span class="sb-val">base64 string</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection">Event to Send</h3>
+    <div class="code-wrap json-wrap">
+      <div class="code-header"><span class="code-lang">json</span><span class="code-label">input_audio_buffer.append — sent every 20–50ms</span></div>
+      <pre><code class="language-json">{
+  "type": "input_audio_buffer.append",
+  "audio": "UklGRiQAAABXQVZFZm10IBAAAA..."  // base64-encoded PCM16 bytes
+}</code></pre>
+    </div>
+
+    <h3 class="subsection">Flutter Implementation</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Mic capture using record package</span></div>
+      <pre><code class="language-dart">import 'dart:convert';
+import 'dart:typed_data';
+import 'package:record/record.dart';
+
+class MicStreamService {
+  final AudioRecorder _recorder = AudioRecorder();
+
+  Future&lt;void&gt; startStreaming(WebSocketChannel channel) async {
+    // Request microphone permission first
+    final hasPermission = await _recorder.hasPermission();
+    if (!hasPermission) throw Exception('Microphone permission denied');
+
+    final stream = await _recorder.startStream(const RecordConfig(
+      encoder: AudioEncoder.pcm16bits,  // Raw PCM16
+      sampleRate: 16000,                // 16 kHz
+      numChannels: 1,                   // Mono
+    ));
+
+    stream.listen((Uint8List chunk) {
+      // chunk is already raw PCM16 little-endian bytes
+      final b64Audio = base64Encode(chunk);
+      channel.sink.add(jsonEncode({
+        'type': 'input_audio_buffer.append',
+        'audio': b64Audio,
+      }));
+    });
+  }
+
+  Future&lt;void&gt; stopStreaming() async {
+    await _recorder.stop();
+  }
+}</code></pre>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-icon">🚫</div>
+      <div class="callout-body">
+        <strong>Never send these events manually</strong>
+        Do NOT send <code>input_audio_buffer.commit</code>, <code>response.create</code>,
+        or <code>session.update</code>. The backend VAD manages all of this.
+        Sending them will cause double-responses or corrupt session state.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 4 ══════════════ -->
+  <div id="step4" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">04</span>
+      <span class="step-tag">Speaker</span>
+    </div>
+    <h2>Audio Playback</h2>
+    <p class="section-desc">
+      The server forwards OpenAI's <code>response.audio.delta</code> events as raw forwarded JSON.
+      Decode each chunk and feed it to an audio queue. Stop immediately on interruption.
+    </p>
+
+    <h3 class="subsection">Key Events</h3>
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio.delta</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">⚡ Append to playback buffer immediately</div>
+          <div class="event-desc">Streamed PCM16 audio chunk for the current AI response.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span><span class="code-label">Response shape</span></div>
+            <pre><code class="language-json">{
+  "type": "response.audio.delta",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0,
+  "delta": "UklGRiQAAABXQVZFZm10IBAAAA..."  // base64 PCM16 at 24kHz mono
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">✅ Flush audio queue</div>
+          <div class="event-desc">All audio chunks for this response turn have been sent.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "response.audio.done",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection">Flutter Playback</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">PCM16 streaming playback</span></div>
+      <pre><code class="language-dart">import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:just_audio/just_audio.dart';
+
+class PcmPlaybackService {
+  final AudioPlayer _player = AudioPlayer();
+  final _buffer = StreamController&lt;Uint8List&gt;.broadcast();
+  bool _isPlaying = false;
+
+  Future&lt;void&gt; init() async {
+    // Set audio source to a custom PCM16 stream at 24kHz
+    await _player.setAudioSource(
+      _Pcm16StreamSource(stream: _buffer.stream),
+    );
+  }
+
+  void appendChunk(String base64Delta) {
+    final bytes = base64Decode(base64Delta);
+    _buffer.add(bytes);
+    if (!_isPlaying) {
+      _player.play();
+      _isPlaying = true;
+    }
+  }
+
+  // Call this on session.interrupted — critical!
+  void stopAndClear() {
+    _player.stop();
+    _isPlaying = false;
+    // Drain pending chunks
+  }
+
+  void dispose() {
+    _buffer.close();
+    _player.dispose();
+  }
+}
+
+// In your event handler:
+void _onAudioDelta(Map&lt;String, dynamic&gt; event) {
+  playback.appendChunk(event['delta'] as String);
+}
+
+void _onInterrupted() {
+  playback.stopAndClear(); // ← MUST stop immediately
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 5 ══════════════ -->
+  <div id="step5" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">05</span>
+      <span class="step-tag">Input</span>
+    </div>
+    <h2>Text & Image Input</h2>
+    <p class="section-desc">
+      Text and images are injected into the live session via
+      <code>conversation.item.create</code>. No need to start a new session.
+      The backend validates and forwards these to OpenAI, then auto-triggers a response.
+    </p>
+
+    <h3 class="subsection">Sending Text</h3>
+    <div class="code-wrap json-wrap">
+      <div class="code-header"><span class="code-lang">json</span><span class="code-label">Text message — Client → Server</span></div>
+      <pre><code class="language-json">{
+  "type": "conversation.item.create",
+  "item": {
+    "type": "message",
+    "role": "user",
+    "content": [
+      {
+        "type": "input_text",
+        "text": "What does page 3 say about the dosage?"
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Sending text from Flutter</span></div>
+      <pre><code class="language-dart">void sendText(String text) {
+  _channel.sink.add(jsonEncode({
+    'type': 'conversation.item.create',
+    'item': {
+      'type': 'message',
+      'role': 'user',
+      'content': [
+        {'type': 'input_text', 'text': text}
+      ]
+    }
+  }));
+  // response.create is triggered automatically by the backend
+}</code></pre>
+    </div>
+
+    <h3 class="subsection">Sending an Image</h3>
+    <div class="code-wrap json-wrap">
+      <div class="code-header"><span class="code-lang">json</span><span class="code-label">Image message — Client → Server</span></div>
+      <pre><code class="language-json">{
+  "type": "conversation.item.create",
+  "item": {
+    "type": "message",
+    "role": "user",
+    "content": [
+      {
+        "type": "input_image",
+        "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRgAB...",
+        "detail": "auto"   // "low" | "high" | "auto" | "original"
+      },
+      {
+        "type": "input_text",
+        "text": "What is shown here?"    // optional but recommended
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Sending image from Flutter (with compression)</span></div>
+      <pre><code class="language-dart">import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+
+Future&lt;void&gt; sendImage({String? caption}) async {
+  final picker = ImagePicker();
+  final file = await picker.pickImage(source: ImageSource.gallery);
+  if (file == null) return;
+
+  // Compress to stay under ~4 MB base64 limit
+  final compressed = await FlutterImageCompress.compressWithFile(
+    file.path,
+    quality: 80,
+    minWidth: 1280,
+    minHeight: 1280,
+  );
+  if (compressed == null) return;
+
+  final b64 = base64Encode(compressed);
+  final dataUrl = 'data:image/jpeg;base64,$b64';
+
+  final content = [
+    {'type': 'input_image', 'image_url': dataUrl, 'detail': 'auto'},
+    if (caption != null) {'type': 'input_text', 'text': caption},
+  ];
+
+  _channel.sink.add(jsonEncode({
+    'type': 'conversation.item.create',
+    'item': {'type': 'message', 'role': 'user', 'content': content},
+  }));
+}
+
+// Handle image validation errors from server:
+void _onError(Map&lt;String, dynamic&gt; event) {
+  final errType = event['error']?['type'];
+  if (errType == 'image_validation_error') {
+    showSnackBar(event['error']['message']);
+  }
+}</code></pre>
+    </div>
+
+    <h3 class="subsection">Image Rules</h3>
+    <table class="spec-table">
+      <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Allowed MIME types</td><td><code>image/jpeg</code>, <code>image/png</code>, <code>image/gif</code>, <code>image/webp</code></td></tr>
+        <tr><td>URL schemes</td><td><code>data:image/{type};base64,…</code> or <code>https://</code></td></tr>
+        <tr><td>Max base64 size</td><td>~4 MB (5,500,000 base64 chars) <span class="em">— compress before sending</span></td></tr>
+        <tr><td>Missing text block</td><td>Server auto-injects: "Please describe what you see"</td></tr>
+        <tr><td>Validation error event</td><td><code>{ type: "error", error: { type: "image_validation_error", message } }</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ STEP 6 ══════════════ -->
+  <div id="step6" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">06</span>
+      <span class="step-tag">Tool Calls</span>
+    </div>
+    <h2>Tool Call Events</h2>
+    <p class="section-desc">
+      The backend executes tools fully internally. The app receives status
+      notifications only — <strong>no action required from Flutter</strong> to complete a tool.
+      Use these events to drive loading states.
+    </p>
+
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.running</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">🔄 Show loading indicator</div>
+          <div class="event-desc">A tool has started executing on the backend. Display a status message using <code>name</code>.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "tool.running",
+  "name": "search_document",
+  "call_id": "call_abc123"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">✅ Hide loading indicator</div>
+          <div class="event-desc">Tool completed successfully. <code>output</code> is a JSON string of the result (for display/logging only).</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "tool.done",
+  "name": "search_document",
+  "call_id": "call_abc123",
+  "output": "{\"results\": [...], \"count\": 5}"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.aborted</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">❌ Hide loading indicator</div>
+          <div class="event-desc">Tool was cancelled because the user interrupted mid-response. Discard any associated loading state.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "tool.aborted",
+  "name": "search_document",
+  "call_id": "call_abc123"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Tool event handling</span></div>
+      <pre><code class="language-dart">String? _toolStatus;
+
+void _onToolRunning(Map&lt;String, dynamic&gt; event) {
+  setState(() {
+    _toolStatus = 'Looking up: ${event['name']}…';
+  });
+}
+
+void _onToolDone(Map&lt;String, dynamic&gt; event) {
+  setState(() => _toolStatus = null);
+  // event['output'] is a JSON string — parse if you want to log it
+}
+
+void _onToolAborted(Map&lt;String, dynamic&gt; event) {
+  setState(() => _toolStatus = null);
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 7 ══════════════ -->
+  <div id="step7" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">07</span>
+      <span class="step-tag">Interruption</span>
+    </div>
+    <h2>Interruption Handling</h2>
+    <p class="section-desc">
+      When the user speaks while the AI is responding, the server cancels the AI
+      response and aborts in-flight tools automatically. The app's only job is to
+      stop audio playback the moment <code>session.interrupted</code> arrives.
+    </p>
+
+    <h3 class="subsection">Interruption Flow</h3>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <span class="flow-n">1</span>
+        <span class="flow-who">Server (VAD)</span>
+        <span class="flow-action">Detects speech on input audio buffer</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">2</span>
+        <span class="flow-who">Server → App</span>
+        <span class="flow-action"><code>session.interrupted</code> sent to Flutter <strong>immediately</strong></span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">3</span>
+        <span class="flow-who">App ← action</span>
+        <span class="flow-action"><strong>Stop audio playback and clear buffer NOW.</strong> This is critical — failure causes overlapping voices.</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">4</span>
+        <span class="flow-who">Server → OpenAI</span>
+        <span class="flow-action">Sends <code>response.cancel</code> to OpenAI with the active response ID</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">5</span>
+        <span class="flow-who">Server → App</span>
+        <span class="flow-action"><code>tool.aborted</code> for any in-flight tool calls</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">6</span>
+        <span class="flow-who">Server → App</span>
+        <span class="flow-action"><code>response.cancelled</code> forwarded from OpenAI</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">7</span>
+        <span class="flow-who">Server (VAD)</span>
+        <span class="flow-action">Detects speech stop, sends <code>response.create</code> to OpenAI automatically</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-n">8</span>
+        <span class="flow-who">Server → App</span>
+        <span class="flow-action">New AI response begins — <code>response.audio.delta</code> resumes</span>
+      </div>
+    </div>
+
+    <h3 class="subsection">Key Events</h3>
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">session.interrupted</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">🛑 Stop audio playback NOW</div>
+          <div class="event-desc">Fired the instant VAD detects user speech during AI response.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "session.interrupted"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.cancelled</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Discard any buffered audio chunks</div>
+          <div class="event-desc">Confirms the AI response was cancelled. Discard any remaining buffered audio.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "response.cancelled",
+  "response_id": "resp_abc123"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ STEP 8 ══════════════ -->
+  <div id="step8" class="section">
+    <div class="step-eyebrow">
+      <span class="step-num-badge">08</span>
+      <span class="step-tag">Lifecycle</span>
+    </div>
+    <h2>Session End & Cleanup</h2>
+    <p class="section-desc">Sessions end via AI request, user action, or network events. Always clean up mic and audio resources.</p>
+
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">session.end_requested</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Show completion UI, close gracefully</div>
+          <div class="event-desc">The AI determined the session is complete. An optional reason is provided.</div>
+          <div class="code-wrap json-wrap" style="margin-top:8px">
+            <div class="code-header"><span class="code-lang">json</span></div>
+            <pre><code class="language-json">{
+  "type": "session.end_requested",
+  "reason": "Consultation complete. Have a great day!"  // nullable
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection">Close Codes</h3>
+    <table class="spec-table">
+      <thead><tr><th>Close Code</th><th>Reason</th><th>App Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>4029</code></td><td>Rate limit exceeded (sessions or connections/min)</td><td>Show error, wait 60s, offer retry</td></tr>
+        <tr><td><code>1011</code></td><td>Server error</td><td>Exponential backoff: 2s → 4s → 8s → max 30s</td></tr>
+        <tr><td><code>1000</code></td><td>Normal closure</td><td>Clean shutdown, no reconnect needed</td></tr>
+        <tr><td>no code / <code>1006</code></td><td>Network drop</td><td>Auto-reconnect with backoff, restore state</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">dart</span><span class="code-label">Cleanup + reconnect logic</span></div>
+      <pre><code class="language-dart">int _reconnectAttempts = 0;
+
+Future&lt;void&gt; endSession() async {
+  await mic.stopStreaming();
+  playback.stopAndClear();
+  await _channel?.sink.close();
+}
+
+void _handleDisconnected() {
+  final code = _channel?.closeCode;
+  switch (code) {
+    case 4029:
+      showError('Too many active sessions. Please wait 60 seconds.');
+      return; // Don't auto-reconnect
+    case 1000:
+      return; // Normal close, no reconnect
+    default:
+      _scheduleReconnect();
+  }
+}
+
+void _scheduleReconnect() {
+  if (_reconnectAttempts >= 5) {
+    showError('Connection failed after 5 attempts.');
+    return;
+  }
+  final delay = Duration(seconds: min(30, pow(2, _reconnectAttempts).toInt()));
+  Future.delayed(delay, connect);
+  _reconnectAttempts++;
+}
+
+void _onSessionReady(Map&lt;String, dynamic&gt; event) {
+  _reconnectAttempts = 0; // Reset on successful connection
+  mic.startStreaming(_channel!);
+}</code></pre>
+    </div>
+  </div>
+
+  <hr class="divider" style="margin-top:48px"/>
+
+  <!-- ══════════════ EVENT REFERENCE ══════════════ -->
+  <div id="event-ref" class="section">
+    <div class="step-eyebrow"><span class="step-tag">Reference</span></div>
+    <h2>Full Event Reference</h2>
+    <p class="section-desc">
+      Every event the app sends or receives, with its complete JSON shape.
+      Custom events are generated by the backend proxy.
+      OpenAI fwd events are forwarded verbatim from the OpenAI Realtime API.
+    </p>
+
+    <h3 class="subsection">Events the App Sends</h3>
+
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-client">Client → Server</span>
+          <span class="event-name">input_audio_buffer.append</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Continuous mic audio stream. Send every 20–50ms while mic is open.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "input_audio_buffer.append",
+  "audio": "&lt;base64-encoded PCM16 bytes&gt;"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-client">Client → Server</span>
+          <span class="event-name">conversation.item.create (text)</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Inject a text message into the live session. Backend auto-triggers a response.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "conversation.item.create",
+  "previous_item_id": null,       // optional: insert after specific item
+  "item": {
+    "type": "message",
+    "role": "user",
+    "content": [
+      {
+        "type": "input_text",
+        "text": "Your text message here"
+      }
+    ]
+  }
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-client">Client → Server</span>
+          <span class="event-name">conversation.item.create (image)</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Inject an image (with optional text) into the live session. Server validates MIME, size, and normalises the payload.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "conversation.item.create",
+  "item": {
+    "type": "message",
+    "role": "user",
+    "content": [
+      {
+        "type": "input_image",
+        "image_url": "data:image/jpeg;base64,&lt;base64 bytes&gt;",
+        "detail": "auto"    // "low" | "high" | "auto" | "original"
+      },
+      {
+        "type": "input_text",
+        "text": "What is shown here?"    // optional
+      }
+    ]
+  }
+}</code></pre></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection">Custom Backend Events (Server → App)</h3>
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Not from OpenAI</strong>
+        These events are generated by the backend proxy itself, not forwarded from OpenAI.
+        They will not appear in the OpenAI Realtime API docs.
+      </div>
+    </div>
+
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">session.ready</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">🚀 Start mic streaming after this</div>
+          <div class="event-desc">Emitted after OpenAI connection is established and session is fully configured. This is the green light to begin streaming audio.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "session.ready",
+  "message": "Connected to realtime session"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">session.interrupted</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">🛑 Stop audio playback immediately</div>
+          <div class="event-desc">User speech was detected while AI was responding. Stop playback and clear audio buffer before this event's handler returns.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "session.interrupted"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">session.end_requested</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">🏁 Close connection gracefully</div>
+          <div class="event-desc">AI requested the session end (via internal tool call). <code>reason</code> may be shown to the user.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "session.end_requested",
+  "reason": "Consultation complete."     // string | null
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.running</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">⏳ Show loading state</div>
+          <div class="event-desc">Backend started executing a tool. May be multiple simultaneous tool calls — track by <code>call_id</code>.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "tool.running",
+  "name": "search_document",
+  "call_id": "call_abc123"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">✅ Hide loading state</div>
+          <div class="event-desc">Tool completed. <code>output</code> is a JSON string of the result — useful for logging or showing a brief summary.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "tool.done",
+  "name": "search_document",
+  "call_id": "call_abc123",
+  "output": "{\"results\": [{\"page\": 3, \"text\": \"...\" }], \"count\": 2}"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">tool.aborted</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">❌ Hide loading state</div>
+          <div class="event-desc">Tool was aborted because the response it belonged to was cancelled (user interrupted). Match by <code>call_id</code>.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "tool.aborted",
+  "name": "search_document",
+  "call_id": "call_abc123"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-custom">Custom</span>
+          <span class="event-name">error</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">⚠️ Log and show user-facing message</div>
+          <div class="event-desc">Backend-level error (connection issues, image validation, etc). Check <code>error.type</code> for specific handling.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">// Image validation error
+{
+  "type": "error",
+  "error": {
+    "type": "image_validation_error",
+    "message": "Image too large (~5.2 MB). Maximum allowed size is ~4 MB."
+  }
+}
+
+// General proxy error
+{
+  "type": "error",
+  "message": "OpenAI connection error",
+  "detail": "connect ECONNREFUSED"
+}</code></pre></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="subsection">Forwarded OpenAI Events (Server → App)</h3>
+    <div class="callout note">
+      <div class="callout-icon">📡</div>
+      <div class="callout-body">
+        <strong>Forwarded verbatim</strong>
+        These are forwarded directly from the OpenAI Realtime API. The shapes below reflect
+        the actual OpenAI event payloads as proxied by the backend.
+      </div>
+    </div>
+
+    <div class="event-grid">
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">session.created</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Sent by OpenAI when the session is created. Contains full session config. Informational — no action needed.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "session.created",
+  "event_id": "event_abc",
+  "session": {
+    "id": "sess_abc123",
+    "object": "realtime.session",
+    "model": "gpt-realtime",
+    "modalities": ["audio", "text"],
+    "voice": "alloy",
+    "input_audio_format": "pcm16",
+    "output_audio_format": "pcm16",
+    "input_audio_transcription": { "model": "whisper-1" },
+    "turn_detection": {
+      "type": "server_vad",
+      "threshold": 0.75,
+      "prefix_padding_ms": 800,
+      "silence_duration_ms": 700
+    },
+    "tools": [...],
+    "tool_choice": "auto",
+    "temperature": 0.8,
+    "max_response_output_tokens": "inf"
+  }
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">input_audio_buffer.speech_started</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Show "Listening…" indicator</div>
+          <div class="event-desc">VAD detected voice activity. Update UI to listening state.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "input_audio_buffer.speech_started",
+  "event_id": "event_abc",
+  "audio_start_ms": 1200,
+  "item_id": "item_xyz"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">input_audio_buffer.speech_stopped</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Show "Processing…" indicator</div>
+          <div class="event-desc">VAD detected silence. The backend will automatically trigger a response.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "input_audio_buffer.speech_stopped",
+  "event_id": "event_abc",
+  "audio_end_ms": 3400,
+  "item_id": "item_xyz"
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">conversation.item.created</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Confirms a conversation item was added. Can be used to track conversation history.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "conversation.item.created",
+  "event_id": "event_abc",
+  "previous_item_id": "item_prev",
+  "item": {
+    "id": "item_xyz",
+    "object": "realtime.item",
+    "type": "message",
+    "status": "completed",
+    "role": "user",
+    "content": [
+      { "type": "input_text", "text": "What does page 3 say?" }
+    ]
+  }
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.created</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Switch UI to AI responding state</div>
+          <div class="event-desc">AI has started generating a response. Store <code>response.id</code> if you need to correlate with <code>response.done</code>.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.created",
+  "event_id": "event_abc",
+  "response": {
+    "id": "resp_abc123",
+    "object": "realtime.response",
+    "status": "in_progress",
+    "output": [],
+    "usage": null
+  }
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio.delta</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">⚡ Append to playback buffer immediately</div>
+          <div class="event-desc">A PCM16 audio chunk. Decode the <code>delta</code> field from base64 and feed to your audio player.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.audio.delta",
+  "event_id": "event_abc",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0,
+  "delta": "UklGRiQAAABXQVZFZm10IBAAAA..."  // base64 PCM16 at 24kHz mono
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Flush audio queue</div>
+          <div class="event-desc">All audio chunks for this response have been sent. Drain any remaining buffer.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.audio.done",
+  "event_id": "event_abc",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio_transcript.delta</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Streaming partial transcript of the AI's spoken response. Use for live captions.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.audio_transcript.delta",
+  "event_id": "event_abc",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0,
+  "delta": "Based on page 3"    // append to caption string
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.audio_transcript.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Complete final transcript of the AI's spoken response. Store in chat history.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.audio_transcript.done",
+  "event_id": "event_abc",
+  "response_id": "resp_abc123",
+  "item_id": "item_xyz",
+  "output_index": 0,
+  "content_index": 0,
+  "transcript": "Based on page 3, the recommended dosage is 500mg twice daily."
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.done</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-when">Return UI to idle state</div>
+          <div class="event-desc">Full response is complete. Contains final usage stats.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.done",
+  "event_id": "event_abc",
+  "response": {
+    "id": "resp_abc123",
+    "object": "realtime.response",
+    "status": "completed",
+    "output": [
+      {
+        "id": "item_xyz",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "audio",
+            "transcript": "Based on page 3, the recommended dosage is..."
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "total_tokens": 342,
+      "input_tokens": 120,
+      "output_tokens": 222
+    }
+  }
+}</code></pre></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-card-header">
+          <span class="badge badge-oai">OpenAI fwd</span>
+          <span class="event-name">response.cancelled</span>
+        </div>
+        <div class="event-card-body">
+          <div class="event-desc">Confirms a response was cancelled (e.g. by interruption). Discard any remaining audio chunks associated with this <code>response_id</code>.</div>
+          <div class="code-wrap json-wrap"><div class="code-header"><span class="code-lang">json</span></div>
+          <pre><code class="language-json">{
+  "type": "response.cancelled",
+  "event_id": "event_abc",
+  "response_id": "resp_abc123"
+}</code></pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ AUDIO SPECS ══════════════ -->
+  <div id="audio-specs" class="section">
+    <div class="step-eyebrow"><span class="step-tag">Reference</span></div>
+    <h2>Audio Specs</h2>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Input (Mic → Server)</th><th>Output (Server → Speaker)</th></tr></thead>
+      <tbody>
+        <tr><td>Format</td><td>PCM16 signed, little-endian</td><td>PCM16 signed, little-endian</td></tr>
+        <tr><td>Sample rate</td><td><code>16 000 Hz</code> (recommended)</td><td><code>24 000 Hz</code></td></tr>
+        <tr><td>Channels</td><td>1 (mono)</td><td>1 (mono)</td></tr>
+        <tr><td>Bit depth</td><td>16-bit int</td><td>16-bit int</td></tr>
+        <tr><td>Chunk duration</td><td>20 – 50 ms</td><td>Varies per delta event</td></tr>
+        <tr><td>Raw bytes/chunk</td><td>640 – 1600 bytes <span class="em">(at 16kHz)</span></td><td>Variable</td></tr>
+        <tr><td>Encoding</td><td>base64 string</td><td>base64 string</td></tr>
+        <tr><td>Event type</td><td><code>input_audio_buffer.append</code></td><td><code>response.audio.delta</code></td></tr>
+        <tr><td>Transcription</td><td>whisper-1 (server-side, automatic)</td><td>N/A</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <div class="callout-icon">🎚️</div>
+      <div class="callout-body">
+        <strong>VAD Config (server-managed, informational only)</strong>
+        threshold: 0.75 · prefix_padding: 800ms · silence_duration: 700ms ·
+        create_response: false (backend handles it) · interrupt_response: true
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ERRORS ══════════════ -->
+  <div id="errors" class="section">
+    <div class="step-eyebrow"><span class="step-tag">Reference</span></div>
+    <h2>Errors & Reconnection</h2>
+    <table class="spec-table">
+      <thead><tr><th>Scenario</th><th>Signal</th><th>Recommended Action</th></tr></thead>
+      <tbody>
+        <tr><td>Auth failure</td><td>HTTP 401 before WS upgrade</td><td>Refresh JWT and retry once</td></tr>
+        <tr><td>Rate limit</td><td>WS close code <code>4029</code></td><td>Wait 60s, show friendly message</td></tr>
+        <tr><td>Server error</td><td>WS close code <code>1011</code></td><td>Exponential backoff: 2s → 4s → 8s → 30s max</td></tr>
+        <tr><td>Network drop</td><td><code>onDone</code> / <code>1006</code></td><td>Auto-reconnect with backoff</td></tr>
+        <tr><td>Image too large</td><td><code>error.type = image_validation_error</code></td><td>Show message, ask user to resize image</td></tr>
+        <tr><td>Image wrong format</td><td><code>error.type = image_validation_error</code></td><td>Show supported formats: JPEG, PNG, GIF, WebP</td></tr>
+        <tr><td>OpenAI API error</td><td><code>error</code> event forwarded</td><td>Log <code>message</code> + <code>detail</code>, show generic message</td></tr>
+        <tr><td>Session timeout</td><td>WS closes after 60 min</td><td>Notify user, offer "Start New Session"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ PACKAGES ══════════════ -->
+  <div id="packages" class="section">
+    <div class="step-eyebrow"><span class="step-tag">Reference</span></div>
+    <h2>Flutter Packages</h2>
+
+    <table class="spec-table">
+      <thead><tr><th>Purpose</th><th>Package</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>WebSocket client</td><td><code>web_socket_channel</code></td><td>Official. Works on iOS, Android, web, desktop.</td></tr>
+        <tr><td>Mic capture</td><td><code>record</code></td><td>Supports PCM16, 16kHz, mono. Stream mode required.</td></tr>
+        <tr><td>Audio playback</td><td><code>just_audio</code></td><td>Use <code>StreamAudioSource</code> for real-time PCM16.</td></tr>
+        <tr><td>Alt playback</td><td><code>flutter_sound</code></td><td>More raw PCM control but heavier API.</td></tr>
+        <tr><td>Base64 / JSON</td><td><code>dart:convert</code> (built-in)</td><td><code>base64Encode</code> / <code>jsonDecode</code> — no package needed.</td></tr>
+        <tr><td>Image picking</td><td><code>image_picker</code></td><td>Camera and gallery. Works on iOS and Android.</td></tr>
+        <tr><td>Image compression</td><td><code>flutter_image_compress</code></td><td>Compress before sending to stay under 4 MB.</td></tr>
+        <tr><td>Permissions</td><td><code>permission_handler</code></td><td>Request RECORD_AUDIO, CAMERA, PHOTOS.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subsection">Minimum pubspec.yaml</h3>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">yaml</span><span class="code-label">pubspec.yaml</span></div>
+      <pre><code class="language-yaml">dependencies:
+  flutter:
+    sdk: flutter
+  web_socket_channel: ^2.4.0
+  record: ^5.0.0
+  just_audio: ^0.9.40
+  permission_handler: ^11.3.0
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0</code></pre>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>Talk To Doc · Flutter Integration Guide · v1.0 · March 2026</span>
+    <span>Backend: NestJS proxy · OpenAI model: gpt-realtime · Max session: 60 min</span>
+  </div>
+
+</main>
+</div>
+
+<script>
+hljs.highlightAll();
+
+// Active TOC link on scroll
+const sections = document.querySelectorAll('[id]');
+const tocLinks = document.querySelectorAll('.toc-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -75% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
